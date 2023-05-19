@@ -1,11 +1,13 @@
 clf;
 clear;
 
-a1=-1;
-a3=-1;
+nls_case.powers = [5,7,9];
+nls_case.coefs = [1,-1]; % coefs of f; [a_1,a_3] in the notation of 234nls
+log_scale = 1; % use log scale for omega; otherwise use linear scale
+ignore_inf = 0; % replace infinite J values with NaN
+tol = 0.00000001;
 
 gamma_vals = linspace(-10,10,50);
-log_scale = 0; % use log scale for omega; otherwise use linear scale
 if(log_scale)
     omega_vals = logspace(-3,1,50);
 else
@@ -13,10 +15,8 @@ else
 end
 J_vals = zeros(length(gamma_vals),length(omega_vals));
 
-tol = 0.00000001;
-ignore_inf = 0; % replace infinite J values with NaN
-num_issues = zeros(3); % number of (omega, gamma) such that [no a value found, Up is positive at a, U is negavite somewhere in (0,a)]
-num_exist = 0; % number of (omega,gamma) st a solution exists
+num_issues = zeros(1,3); % number of (omega, gamma) such that [no a value found, Up is positive at a, U is negavite somewhere in (0,a)]
+num_exist = 0; % number of (omega,gamma) such that a solution exists
 
 idx_bdry = 1;
 idx_stab = 1;
@@ -37,20 +37,10 @@ for i = 1: length(omega_vals)
         J_vals(j,i) = NaN;
         om = omega_vals(i);
         gam = gamma_vals(j);
-        alp = func_a(om,gam,a1,a3);
-        issues = DNE_omgam(om,gam,alp,a1,a3,tol);
+        alp = func_a(om,gam,nls_case);
+        issues = DNE_omgam(om,gam,alp,nls_case,tol);
         if (~issues)
-            Jval = func_J(om,gam,alp,a1,a3);
-            % spJval = special_func_J(om,gam,alp,a1,a3);
-            % dif = abs(Jval-spJval);
-            % if dif>tol
-            %     disp('J funcs disagree for')
-            %     om
-            %     gam
-            %     disp('with')
-            %     Jval
-            %     spJval
-            % end
+            Jval = func_J(om,gam,alp,nls_case);
             if abs(Jval) <= 10^(-6)
                 boundary_om(idx_bdry) = om;
                 boundary_gam(idx_bdry) = gam;
@@ -85,12 +75,12 @@ for i = 1: length(omega_vals)
     end
 end
 
-if a1 == 1
+if nls_case.coefs(1) == 1
     first_letter = 'F';
 else
     first_letter = 'D';
 end
-if a3 == 1
+if nls_case.coefs(2) == 1
     second_letter = 'F';
 else
     second_letter = 'D';
@@ -103,14 +93,14 @@ if log_scale
     plot(log10(unstab_om),unstab_gam,'*');
     %plot(log10(boundary_om),boundary_gam,'c');
     %plot(log10(inf_om),inf_gam,'x', 'Color','g');
-    contour(log10(omega_vals),gamma_vals,J_vals,[-100,-8,-0.5,-.1,0,0.1,0.5,8,100],'showtext','on')
+    contour(log10(omega_vals),gamma_vals,J_vals,[-100,-8,-5,-2,-1,0,1,8,100],'showtext','on')
     xlabel('log10(omega)')
 else
     plot(stab_om,stab_gam,'o');
     plot(unstab_om,unstab_gam,'*');
     plot(boundary_om,boundary_gam,'c');
     %plot(inf_om,inf_gam,'x', 'Color','g');
-    contour(omega_vals,gamma_vals,J_vals,[-100,-9,-8,-0.5,-.1,-.01,0,.01,0.1,0.5,8,9,100],'showtext','on')
+    contour(omega_vals,gamma_vals,J_vals,[-100,-9,-8,-1,-.1,-.01,0.01,.1,1,8,9,100],'showtext','on')
     xlabel('omega')
 end
 ylabel('gamma')

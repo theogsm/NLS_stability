@@ -1,13 +1,13 @@
-function dne = DNE_omgam(om,gam,alp,a1,a3,tol)
+function dne = DNE_omgam(om,gam,alp,nls_case,tol)
     if alp >-.5 % func_a returns -1 if no root is found
         %disp('root of U found')
-        Upa = func_Up(alp,om,gam,a1,a3);
-        Upz = func_Up(0,om,gam,a1,a3);
+        Upa = func_Up(alp,om,gam,nls_case);
+        Upz = func_Up(0,om,gam,nls_case);
         
         %eps = min(.5*alp,max(100*tol/Upa,100*tol/Upz));
         eps = alp/100;
         interval = linspace(eps,alp-eps,50);
-        Uinterval = func_U(interval,om,gam,a1,a3);
+        Uinterval = func_U(interval,om,gam,nls_case);
         minU = min(Uinterval);
         if Upa < 0
             %disp('Upa < 0 checked')
